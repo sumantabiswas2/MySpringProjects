@@ -4,21 +4,30 @@ spring:
     url: jdbc:mysql://localhost:3306/ecommerce_db?useSSL=false&serverTimezone=UTC
     username: root
     password: adminadmin
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
 # Neo4j configurations  
-
   neo4j:
     uri: bolt://localhost:7687
     authentication:
       username: neo4j
       password: adminadmin
 
-# Persistance configurations		
+# JPA configurations		
   jpa:
+    database: mysql
     show-sql: true
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        #dialect: org.hibernate.dialect.MySQL8Dialect # -- Caused Failures --
+        format_sql: true
+        use_sql_comments: true
 
+# Important for multiple data sources
   main:
-    allow-bean-definition-overriding: true # Important for multiple data sources
+    allow-bean-definition-overriding: true 
 
   application:
     name: spring-boot-dual-database
@@ -31,3 +40,20 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     org.springframework.cache: DEBUG
+
+# Cache Configuration
+  cache:
+    type: caffeine  # or 'redis' for distributed caching
+    caffeine:
+      spec: maximumSize=500,expireAfterWrite=10m,recordStats
+
+# Redis Configuration (if using Redis)
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 2000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0

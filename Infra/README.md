@@ -49,3 +49,26 @@ docker run \
     -d \
     mysql:9.7.0
 ```
+
+
+install Redis
+
+```
+docker run \
+    --name redis \
+    -p 6379:6379 \
+    -v ~/GitHub/sumantabiswas2/datafolder/redis-data:/data \
+    -v ~/GitHub/sumantabiswas2/datafolder/redis-backups:/backups \
+    -d \
+    redis:alpine \
+    redis-server \
+    --appendonly yes \
+    --appendfsync everysec \
+    --save 900 1 \
+    --save 300 10 \
+    --save 60 10000 \
+    --dir /data \
+    --dbfilename dump.rdb \
+    --appendfilename appendonly.aof
+
+```

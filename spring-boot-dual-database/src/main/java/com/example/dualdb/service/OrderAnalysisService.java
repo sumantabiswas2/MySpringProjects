@@ -6,6 +6,8 @@ import com.example.dualdb.repository.neo4j.Neo4jCustomerRepository;
 import com.example.dualdb.repository.neo4j.Neo4jProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -21,11 +23,13 @@ public class OrderAnalysisService {
     private final Neo4jProductRepository neo4jProductRepository;
 
     /**
-     * Find product recommendations for a customer
-     * (Frequently bought together by customers who bought the same products)
+     * Get product recommendations with caching - expires after 1 hour
      */
+    @Cacheable(value = "customerRecommendations", 
+               key = "#customerId", 
+               unless = "#result == null || #result.isEmpty()")
     public List<Neo4jProduct> getProductRecommendations(Long customerId) {
-        log.info("Finding product recommendations for customer {}", customerId);
+        log.info("Calculating product recommendations for customer {} (not from cache)", customerId);
         
         // Get all products this customer purchased
         List<Neo4jProduct> purchasedProducts = neo4jProductRepository
@@ -56,26 +60,53 @@ public class OrderAnalysisService {
     }
 
     /**
-     * Find top customers who bought a specific product
+     * Get customers who bought a product with caching
      */
+    @Cacheable(value = "customersByProduct", 
+               key = "#productId", 
+               unless = "#result == null || #result.isEmpty()")
     public List<Neo4jCustomer> getCustomersWhoBoughtProduct(Long productId) {
-        log.info("Finding customers who bought product {}", productId);
+        log.info("Finding customers who bought product {} (not from cache)", productId);
         return neo4jCustomerRepository.findCustomersWhoBoughtProduct(productId);
     }
 
     /**
-     * Find the most active customers (by order count)
+     * Get top customers with caching
      */
+    @Cacheable(value = "topCustomers", 
+               key = "#limit", 
+               unless = "#result == null || #result.isEmpty()")
     public List<Neo4jCustomer> getTopCustomersByOrderCount(int limit) {
-        log.info("Finding top {} customers by order count", limit);
+        log.info("Finding top {} customers by order count (not from cache)", limit);
         return neo4jCustomerRepository.findTopCustomersByOrderCount(limit);
     }
 
     /**
-     * Find customers who bought products in a specific category
+     * Update recommendations for a customer (evict cache)
      */
+    @CacheEvict(value = "customerRecommendations", key = "#customerId")
+    public void refreshCustomerRecommendations(Long customerId) {
+        log.info("Refreshing recommendations cache for customer {}", customerId);
+        // The actual refresh happens on the next call to getProductRecommendations
+    }
+
+    /**
+     * Clear all recommendation caches
+     */
+    @CacheEvict(value = {"customerRecommendations", "customersByProduct", "topCustomers"}, 
+                allEntries = true)
+    public void clearAllRecommendationCaches() {
+        log.info("Clearing all recommendation caches");
+    }
+
+    /**
+     * Get customers by category with caching
+     */
+    @Cacheable(value = "customersByCategory", 
+               key = "#category", 
+               unless = "#result == null || #result.isEmpty()")
     public List<Neo4jCustomer> findCustomersByCategory(String category) {
-        log.info("Finding customers who bought products in category: {}", category);
+        log.info("Finding customers who bought products in category: {} (not from cache)", category);
         return neo4jCustomerRepository.findCustomersWhoBoughtProduct(
                 neo4jProductRepository.findByCategory(category)
                         .stream()

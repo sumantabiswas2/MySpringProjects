@@ -13,6 +13,9 @@ import com.example.dualdb.repository.neo4j.Neo4jOrderRepository;
 import com.example.dualdb.repository.neo4j.Neo4jProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,12 +34,85 @@ public class CustomerSyncService {
     private final Neo4jOrderRepository neo4jOrderRepository;
     private final Neo4jProductRepository neo4jProductRepository;
 
+    
+    
     /**
-     * Sync a specific customer and all their orders to Neo4j
+     * Get customer with caching
      */
+    @Cacheable(value = "customerById", key = "#customerId", unless = "#result == null")
+    public Customer getCustomerById(Long customerId) {
+        log.info("Fetching customer {} from MySQL (not from cache)", customerId);
+        return mysqlCustomerRepository.findById(customerId)
+                .orElseThrow(() -> new RuntimeException("Customer not found: " + customerId));
+    }
+    
+    
+
+    /**
+     * Get all customers with caching
+     */
+    @Cacheable(value = "customers")
+    public List<Customer> getAllCustomers() {
+        log.info("Fetching all customers from MySQL (not from cache)");
+        return mysqlCustomerRepository.findAll();
+    }
+    
+    
+
+    /**
+     * Get all Neo4j customers with caching
+     */
+    @Cacheable(value = "neojCustomer", unless = "#result == null || #result.isEmpty()")
+    public List<Neo4jCustomer> getAllNeo4jCustomers() {
+        log.info("Fetching all Neo4j customers (not from cache)");
+        return neo4jCustomerRepository.findAll();
+    }
+    
+    
+
+    /**
+     * Get recent Neo4j customers with caching
+     */
+    @Cacheable(value = "neojCustomer", key = "'recent'", unless = "#result == null || #result.isEmpty()")
+    public List<Neo4jCustomer> getRecentNeo4jCustomers() {
+        log.info("Fetching recent Neo4j customers (not from cache)");
+        return neo4jCustomerRepository.findRecentCustomers();
+    }
+    
+    
+
+    /**
+     * Create or update customer - evicts old cache entries
+     */
+    @CachePut(value = "customerById", key = "#customer.customerId")
+    @CacheEvict(value = "customers", allEntries = true)
+    public Customer createOrUpdateCustomer(Customer customer) {
+        log.info("Creating/updating customer {} - evicting cache", customer.getCustomerId());
+        return mysqlCustomerRepository.save(customer);
+    }
+    
+    
+
+    /**
+     * Delete customer - evicts all related cache entries
+     */
+    @CacheEvict(value = {"customerById", "customers", "customerOrders"}, 
+                key = "#customerId")
+    public void deleteCustomer(Long customerId) {
+        log.info("Deleting customer {} - evicting cache", customerId);
+        mysqlCustomerRepository.deleteById(customerId);
+    }
+    
+    
+
+    /**
+     * Sync customer to Neo4j and evict Neo4j caches
+     */
+    @CacheEvict(value = {"neojCustomer", "neojProducts", "customerRecommendations"}, 
+                allEntries = true)
     @Transactional
     public void syncCustomerToNeo4j(Long customerId) {
-        log.info("Syncing customer {} to Neo4j", customerId);
+        log.info("Syncing customer {} to Neo4j - evicting Neo4j caches", customerId);
 
         // 1. Fetch from MySQL
         Customer mysqlCustomer = mysqlCustomerRepository.findById(customerId)
@@ -93,13 +169,15 @@ public class CustomerSyncService {
         log.info("Successfully synced customer {} with {} orders to Neo4j", 
                 customerId, neo4jOrders.size());
     }
+    
+    
+    
 
-    /**
-     * Sync all customers to Neo4j
-     */
+    @CacheEvict(value = {"neojCustomer", "neojProducts", "customerRecommendations"}, 
+                allEntries = true)
     @Transactional
     public void syncAllCustomersToNeo4j() {
-        log.info("Syncing all customers to Neo4j");
+        log.info("Syncing all customers to Neo4j - evicting Neo4j caches");
         List<Customer> customers = mysqlCustomerRepository.findAll();
         
         for (Customer customer : customers) {
@@ -112,10 +190,9 @@ public class CustomerSyncService {
         
         log.info("Completed syncing {} customers to Neo4j", customers.size());
     }
+    
+    
 
-    /**
-     * Check if a customer exists in Neo4j
-     */
     public boolean isCustomerInNeo4j(Long customerId) {
         return neo4jCustomerRepository.findByCustomerId(customerId).isPresent();
     }
