@@ -196,4 +196,11 @@ public class CustomerSyncService {
     public boolean isCustomerInNeo4j(Long customerId) {
         return neo4jCustomerRepository.findByCustomerId(customerId).isPresent();
     }
+
+
+
+	public List<Customer> getCustomersByType(String customerType) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

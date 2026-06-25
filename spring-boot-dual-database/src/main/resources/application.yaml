@@ -80,3 +80,22 @@ logging:
     metrics:
       tags:
         application: ${spring.application.name} # Tag all metrics with your app's name
+
+# GraphQL
+  graphql:
+    graphiql:
+      enabled: true
+      path: /graphiql
+    schema:
+      printer:
+        enabled: true
+    cors:
+      allowed-origins: "*"
+      allowed-methods: "*"
+      allowed-headers: "*"
+      allow-credentials: true
+    websocket:
+      path: /graphql
+    playground:
+      enabled: true
+      path: /playground

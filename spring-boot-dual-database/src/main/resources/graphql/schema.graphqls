@@ -1,0 +1,464 @@
+# ============================================
+# GRAPHQL SCHEMA FOR E-COMMERCE APPLICATION
+# ============================================
+
+# ============================================
+# CORE TYPES
+# ============================================
+
+type Customer {
+    customerId: ID!
+    firstName: String!
+    lastName: String!
+    email: String!
+    phone: String
+    dateOfBirth: String
+    registrationDate: String
+    lastLogin: String
+    isActive: Boolean!
+    customerType: CustomerType!
+    addresses: [Address!]!
+    orders: [Order!]!
+    reviews: [ProductReview!]!
+    totalSpent: Float!
+    orderCount: Int!
+}
+
+type Address {
+    addressId: ID!
+    addressLine1: String!
+    addressLine2: String
+    city: String!
+    state: String!
+    postalCode: String!
+    country: String!
+    isDefault: Boolean!
+    addressType: AddressType!
+}
+
+type Product {
+    productId: ID!
+    productName: String!
+    productDescription: String
+    sku: String!
+    category: String!
+    subCategory: String
+    unitPrice: Float!
+    costPrice: Float
+    quantityInStock: Int!
+    reorderLevel: Int
+    weightKg: Float
+    isActive: Boolean!
+    createdAt: String!
+    updatedAt: String
+    averageRating: Float!
+    reviewCount: Int!
+    reviews: [ProductReview!]!
+    frequentlyBoughtTogether: [Product!]!
+}
+
+type Order {
+    orderId: ID!
+    orderDate: String!
+    orderStatus: OrderStatus!
+    totalAmount: Float!
+    discountAmount: Float!
+    taxAmount: Float!
+    shippingCharge: Float!
+    finalAmount: Float!
+    paymentMethod: String
+    paymentStatus: PaymentStatus!
+    notes: String
+    customer: Customer!
+    items: [OrderItem!]!
+    shippingAddress: Address!
+    billingAddress: Address!
+}
+
+type OrderItem {
+    orderItemId: ID!
+    quantity: Int!
+    unitPriceAtOrder: Float!
+    discountPercent: Float!
+    taxPercent: Float!
+    totalPrice: Float!
+    product: Product!
+}
+
+type ProductReview {
+    reviewId: ID!
+    rating: Int!
+    reviewTitle: String
+    reviewText: String
+    isVerifiedPurchase: Boolean!
+    helpfulCount: Int!
+    createdAt: String!
+    updatedAt: String
+    customer: Customer!
+    product: Product!
+}
+
+type ShoppingCart {
+    cartId: ID!
+    customer: Customer!
+    items: [CartItem!]!
+    totalItems: Int!
+    totalPrice: Float!
+    createdAt: String!
+    updatedAt: String!
+}
+
+type CartItem {
+    cartItemId: ID!
+    product: Product!
+    quantity: Int!
+    addedAt: String!
+    subtotal: Float!
+}
+
+# ============================================
+# ENUMS
+# ============================================
+
+enum CustomerType {
+    Regular
+    Premium
+    VIP
+}
+
+enum AddressType {
+    Home
+    Work
+    Other
+}
+
+enum OrderStatus {
+    Pending
+    Processing
+    Shipped
+    Delivered
+    Cancelled
+    Refunded
+}
+
+enum PaymentStatus {
+    Pending
+    Paid
+    Failed
+    Refunded
+}
+
+# ============================================
+# INPUT TYPES
+# ============================================
+
+input CustomerInput {
+    firstName: String!
+    lastName: String!
+    email: String!
+    phone: String
+    dateOfBirth: String
+    customerType: CustomerType
+}
+
+input UpdateCustomerInput {
+    firstName: String
+    lastName: String
+    phone: String
+    customerType: CustomerType
+    isActive: Boolean
+}
+
+input AddressInput {
+    addressLine1: String!
+    addressLine2: String
+    city: String!
+    state: String!
+    postalCode: String!
+    country: String
+    isDefault: Boolean
+    addressType: AddressType
+}
+
+input OrderItemInput {
+    productId: ID!
+    quantity: Int!
+}
+
+input OrderInput {
+    customerId: ID!
+    shippingAddressId: ID!
+    billingAddressId: ID!
+    items: [OrderItemInput!]!
+    notes: String
+}
+
+input UpdateOrderInput {
+    orderStatus: OrderStatus
+    paymentStatus: PaymentStatus
+    notes: String
+}
+
+input ProductReviewInput {
+    productId: ID!
+    customerId: ID!
+    rating: Int!
+    reviewTitle: String
+    reviewText: String
+}
+
+# ============================================
+# QUERIES
+# ============================================
+
+type Query {
+    # ===== Customer Queries =====
+    customers: [Customer!]!
+    customerById(customerId: ID!): Customer
+    customersByEmail(email: String!): Customer
+    customersByType(customerType: CustomerType!): [Customer!]!
+    customersByActiveStatus(isActive: Boolean!): [Customer!]!
+    searchCustomers(query: String!): [Customer!]!
+    customersWithoutOrders: [Customer!]!
+    customersWithOrders: [Customer!]!
+    topCustomersByOrderCount: [Customer!]!
+    topCustomersByTotalSpent: [Customer!]!
+    
+    # ===== Product Queries =====
+    products: [Product!]!
+    productById(productId: ID!): Product
+    productsByCategory(category: String!): [Product!]!
+    productsByPriceRange(minPrice: Float!, maxPrice: Float!): [Product!]!
+    productsInStock: [Product!]!
+    productsOutOfStock: [Product!]!
+    activeProductsInStock: [Product!]!
+    productsNeedingReorder: [Product!]!
+    activeProductsNeedingReorder: [Product!]!
+    searchProducts(query: String!): [Product!]!
+    topSellingProducts(limit: Int): [Product!]!
+    topSellingProductsWithStats(limit: Int): [TopSellingProduct!]!
+    topSellingProductsByCategory(category: String!, limit: Int): [TopSellingProduct!]!
+    topRevenueProducts(limit: Int): [TopSellingProduct!]!
+    productsWithMinRating(minRating: Float!): [Product!]!
+    mostExpensiveProduct: Product
+    cheapestProduct: Product
+    categoryStatistics: [CategoryStats!]!
+    totalStockQuantity: Int!
+    productsByStockRange(minStock: Int!, maxStock: Int!): [Product!]!
+    
+    # ===== Order Queries =====
+    orders: [Order!]!
+    orderById(orderId: ID!): Order
+    ordersByCustomer(customerId: ID!): [Order!]!
+    ordersByStatus(orderStatus: OrderStatus!): [Order!]!
+    ordersByDateRange(startDate: String!, endDate: String!): [Order!]!
+    orderAnalytics(customerId: ID!): OrderAnalytics!
+    
+    # ===== Product Review Queries =====
+    productReviews(productId: ID!): [ProductReview!]!
+    productReviewById(reviewId: ID!): ProductReview
+    productReviewsByCustomer(customerId: ID!): [ProductReview!]!
+    productReviewsByRating(rating: Int!): [ProductReview!]!
+    productAverageRating(productId: ID!): Float!
+    productRatingDistribution(productId: ID!): [RatingDistribution!]!
+    
+    # ===== Graph Queries (Neo4j) =====
+    productRecommendations(customerId: ID!, limit: Int): [Product!]!
+    customersWhoBoughtProduct(productId: ID!): [Customer!]!
+    frequentlyBoughtTogether(productId: ID!, limit: Int): [Product!]!
+    customerPurchasePath(customerId: ID!, depth: Int): [String!]!
+    
+    # ===== Analytics Queries =====
+    customerOrderAnalytics(customerId: ID!): CustomerOrderAnalytics!
+    productCategoryAnalytics: [CategoryAnalytics!]!
+}
+
+# ============================================
+# MUTATIONS
+# ============================================
+
+type Mutation {
+    # ===== Customer Mutations =====
+    createCustomer(input: CustomerInput!): Customer!
+    updateCustomer(customerId: ID!, input: UpdateCustomerInput!): Customer!
+    deleteCustomer(customerId: ID!): DeleteResult!
+    deactivateCustomer(customerId: ID!): Customer!
+    activateCustomer(customerId: ID!): Customer!
+    updateCustomerType(customerId: ID!, customerType: CustomerType!): Customer!
+    addCustomerAddress(customerId: ID!, address: AddressInput!): Address!
+    
+    # ===== Order Mutations =====
+    createOrder(input: OrderInput!): Order!
+    updateOrder(orderId: ID!, input: UpdateOrderInput!): Order!
+    cancelOrder(orderId: ID!): Order!
+    updateOrderStatus(orderId: ID!, status: OrderStatus!): Order!
+    
+    # ===== Product Mutations =====
+    createProduct(input: ProductInput!): Product!
+    updateProduct(productId: ID!, input: ProductInput!): Product!
+    deleteProduct(productId: ID!): DeleteResult!
+    updateProductStock(productId: ID!, quantity: Int!): Product!
+    incrementProductStock(productId: ID!, quantity: Int!): Product!
+    decrementProductStock(productId: ID!, quantity: Int!): Product!
+    updateProductPrice(productId: ID!, price: Float!): Product!
+    toggleProductActive(productId: ID!): Product!
+    updateProductCategory(productId: ID!, category: String!): Product!
+    applyDiscountToCategory(category: String!, discountPercentage: Float!): Int!
+    deactivateOutOfStockProducts: Int!
+    
+    # ===== Product Review Mutations =====
+    addProductReview(input: ProductReviewInput!): ProductReview!
+    updateProductReview(reviewId: ID!, input: ProductReviewInput!): ProductReview!
+    deleteProductReview(reviewId: ID!): DeleteResult!
+    markReviewHelpful(reviewId: ID!): ProductReview!
+    markReviewNotHelpful(reviewId: ID!): ProductReview!
+    
+    # ===== Shopping Cart Mutations =====
+    createCart(customerId: ID!): ShoppingCart!
+    addItemToCart(cartId: ID!, productId: ID!, quantity: Int!): ShoppingCart!
+    removeItemFromCart(cartId: ID!, cartItemId: ID!): ShoppingCart!
+    updateCartItemQuantity(cartId: ID!, cartItemId: ID!, quantity: Int!): ShoppingCart!
+    clearCart(cartId: ID!): ShoppingCart!
+}
+
+# ============================================
+# SUBSCRIPTIONS
+# ============================================
+
+type Subscription {
+    orderStatusUpdated(orderId: ID!): Order!
+    stockUpdated(productId: ID!): Product!
+    newReviewAdded(productId: ID!): ProductReview!
+    customerActivity(customerId: ID!): CustomerActivity!
+}
+
+# ============================================
+# ANALYTICS TYPES
+# ============================================
+
+type CustomerOrderAnalytics {
+    customerId: ID!
+    firstName: String!
+    lastName: String!
+    totalOrders: Int!
+    totalSpent: Float!
+    averageOrderValue: Float!
+    lastOrderDate: String!
+    orderStatusBreakdown: [OrderStatusBreakdown!]!
+    favoriteCategory: String!
+    preferredPaymentMethod: String!
+}
+
+type OrderStatusBreakdown {
+    status: OrderStatus!
+    count: Int!
+}
+
+type CategoryAnalytics {
+    category: String!
+    productCount: Int!
+    totalOrders: Int!
+    totalRevenue: Float!
+    averagePrice: Float!
+}
+
+type OrderAnalytics {
+    totalOrders: Int!
+    totalRevenue: Float!
+    averageOrderValue: Float!
+    orderStatusBreakdown: [OrderStatusBreakdown!]!
+}
+
+type TopSellingProduct {
+    product: Product!
+    totalSold: Float!
+}
+
+type CategoryStats {
+    category: String!
+    productCount: Int!
+    averagePrice: Float!
+    totalStock: Int!
+}
+
+type RatingDistribution {
+    rating: Int!
+    count: Int!
+}
+
+# ============================================
+# UTILITY TYPES
+# ============================================
+
+type DeleteResult {
+    success: Boolean!
+    message: String!
+}
+
+type PageInfo {
+    hasNextPage: Boolean!
+    hasPreviousPage: Boolean!
+    startCursor: String
+    endCursor: String
+}
+
+interface Node {
+    id: ID!
+}
+
+type Connection {
+    pageInfo: PageInfo!
+    edges: [Edge!]!
+}
+
+type Edge {
+    cursor: String!
+    node: Node!
+}
+
+type CustomerActivity {
+    customerId: ID!
+    activityType: ActivityType!
+    timestamp: String!
+    metadata: String!
+}
+
+enum ActivityType {
+    LOGIN
+    ORDER_PLACED
+    ORDER_CANCELLED
+    REVIEW_ADDED
+    CART_UPDATED
+    VIEWED_PRODUCT
+}
+
+# ============================================
+# ADDITIONAL INPUT TYPES
+# ============================================
+
+input ProductInput {
+    productName: String!
+    productDescription: String
+    sku: String!
+    category: String!
+    subCategory: String
+    unitPrice: Float!
+    costPrice: Float
+    quantityInStock: Int!
+    reorderLevel: Int
+    weightKg: Float
+    isActive: Boolean
+}
+
+input UpdateProductInput {
+    productName: String
+    productDescription: String
+    category: String
+    subCategory: String
+    unitPrice: Float
+    costPrice: Float
+    quantityInStock: Int
+    reorderLevel: Int
+    weightKg: Float
+    isActive: Boolean
+}
