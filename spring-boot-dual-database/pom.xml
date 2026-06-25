@@ -78,7 +78,26 @@
 		</dependency>
 		<dependency>
 		    <groupId>org.apache.commons</groupId>
-		    <artifactId>commons-pool2</artifactId>
+		    <artifactId>commons-pool2</artifactId> 
+		</dependency>
+		
+		
+		<!-- The new official Spring Boot Starter for OpenTelemetry -->
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-opentelemetry</artifactId>
+		</dependency>
+		
+		<!-- Spring Boot Actuator for exposing metrics endpoints -->
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		
+		<!-- Micrometer OTLP registry for exporting metrics -->
+		<dependency>
+		    <groupId>io.micrometer</groupId>
+		    <artifactId>micrometer-registry-otlp</artifactId>
 		</dependency>
 
         <!-- Testing -->

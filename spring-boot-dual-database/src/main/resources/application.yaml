@@ -56,4 +56,27 @@ logging:
       pool:
         max-active: 8
         max-idle: 8
-        min-idle: 0
+        min-idle: 0		
+
+# Observability and metrics
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: "*" # In production, restrict to 'health, info, prometheus'
+    otlp:
+      metrics:
+        export:
+          url: http://localhost:4318/v1/metrics
+    opentelemetry:
+      tracing:
+        export:
+          otlp:
+            endpoint: http://localhost:4318/v1/traces
+      logging:
+        export:
+          otlp:
+            endpoint: http://localhost:4318/v1/logs
+    metrics:
+      tags:
+        application: ${spring.application.name} # Tag all metrics with your app's name
