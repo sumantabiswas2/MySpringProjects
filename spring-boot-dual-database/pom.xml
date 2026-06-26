@@ -20,6 +20,7 @@
 		<java.version>21</java.version>
 		<mysql.version>9.2.0</mysql.version>
         <neo4j.version>6.2.0</neo4j.version>
+		<springdoc.version>3.0.3</springdoc.version>
 	</properties>
 	
 	<dependencies>
@@ -58,7 +59,6 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.32</version>
             <optional>true</optional>
         </dependency>
         
@@ -115,24 +115,11 @@
 	    
 	    
 	    
-	    <!-- SpringDoc OpenAPI for Swagger UI -->
+	    <!-- SpringDoc OpenAPI 3.x is required for Spring Boot 4.x -->
 		<dependency>
 		    <groupId>org.springdoc</groupId>
 		    <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-		    <version>2.6.0</version>
-		</dependency>
-		
-		<!-- For GraphQL integration with Swagger -->
-		<dependency>
-		    <groupId>org.springdoc</groupId>
-		    <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
-		    <version>2.6.0</version>
-		</dependency>
-		
-		<!-- Optional: For better JSON serialization in Swagger -->
-		<dependency>
-		    <groupId>com.fasterxml.jackson.datatype</groupId>
-		    <artifactId>jackson-datatype-jsr310</artifactId>
+		    <version>${springdoc.version}</version>
 		</dependency>
 		
 		
@@ -158,6 +145,26 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</path>
+					</annotationProcessorPaths>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
