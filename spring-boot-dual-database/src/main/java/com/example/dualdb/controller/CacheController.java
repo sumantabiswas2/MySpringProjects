@@ -26,7 +26,7 @@ public class CacheController {
     private final CacheManager cacheManager;
 
     @GetMapping("/stats")
-    @Operation(summary = "Get cache statistics", description = "Returns hit/miss rates, eviction counts, and size for all Caffeine caches")
+    @Operation( summary = "Get cache statistics", description = "Returns hit/miss rates, eviction counts, and size for all Caffeine caches")
     @ApiResponse(responseCode = "200", description = "Cache statistics retrieved successfully")
     public ResponseEntity<Map<String, Map<String, Object>>> getCacheStats() {
         Map<String, Map<String, Object>> allStats = new HashMap<>();
@@ -58,7 +58,7 @@ public class CacheController {
     
 
     @DeleteMapping("/clear/{cacheName}")
-    @Operation(summary = "Clear a specific cache", description = "Removes all entries from the named cache")
+    @Operation( summary = "Clear a specific cache", description = "Removes all entries from the named cache")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Cache cleared successfully"),
             @ApiResponse(responseCode = "400", description = "Cache not found")

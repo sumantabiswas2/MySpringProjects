@@ -66,7 +66,7 @@ public class SwaggerConfig {
     public GroupedOpenApi publicApi() {
         return GroupedOpenApi.builder()
                 .group("public")
-                .pathsToMatch("/api/**", "/graphql/**")
+                .pathsToMatch("/api/**", "/graphql/**", "/actuator/**")
                 .packagesToScan("com.example.dualdb.controller")
                 .build();
     }
@@ -84,7 +84,7 @@ public class SwaggerConfig {
         return GroupedOpenApi.builder()
                 .group("rest")
                 .pathsToMatch("/api/**")
-                .packagesToScan("com.example.dualdb.controller")
+                .packagesToScan("com.example.dualdb.controller.health")
                 .build();
     }
 }
