@@ -1,6 +1,6 @@
 # ~/GitHub/sumantabiswas2/spring-boot-dual-database/docker-compose.yml
 
-version: '3.8'
+
 
 services:
   # ============================================
@@ -95,7 +95,7 @@ services:
 
   # OpenTelemetry Collector
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.150.0
+    image: otel/opentelemetry-collector-contrib:latest
     container_name: otel-collector
     restart: always
     command: ["--config=/etc/otel-collector-config.yml"]
@@ -133,7 +133,7 @@ services:
 
   # Tempo (Traces Database)
   tempo:
-    image: grafana/tempo:2:10:5
+    image: grafana/tempo:3.0.0
     container_name: tempo
     restart: always
     command: ["-config.file=/etc/tempo.yml"]
@@ -162,7 +162,7 @@ services:
 
   # Grafana (Visualization)
   grafana:
-    image: grafana/grafana:13.0.0
+    image: grafana/grafana:13.0.3
     container_name: grafana
     restart: always
     environment:
