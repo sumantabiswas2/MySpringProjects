@@ -5,6 +5,13 @@ import com.example.dualdb.model.neo4j.Neo4jCustomer;
 import com.example.dualdb.repository.mysql.CustomerRepository;
 import com.example.dualdb.repository.neo4j.Neo4jCustomerRepository;
 import com.example.dualdb.service.CustomerSyncService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.CacheManager;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +24,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/customers")
 @RequiredArgsConstructor
+@Tag(name = "Customer Controller", description = "REST API for customer management")
 public class CustomerController {
 
     private final CustomerRepository mysqlCustomerRepository;
@@ -27,6 +35,12 @@ public class CustomerController {
     // ========== MySQL Endpoints with Caching ==========
 
     @GetMapping("/mysql")
+    @Operation(summary = "Get all customers (REST)", description = "Retrieves a list of all customers")
+    @ApiResponse(
+    	    responseCode = "200", 
+    	    description = "Customer details retrieved successfully", 
+    	    content = @Content(schema = @Schema(implementation = Customer.class))
+    	)
     public ResponseEntity<List<Customer>> getAllMySqlCustomers() {
         return ResponseEntity.ok(customerSyncService.getAllCustomers());
     }
