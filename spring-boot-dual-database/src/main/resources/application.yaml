@@ -71,6 +71,23 @@ spring:
       enabled: true
       path: /playground
 
+
+  # Vault- HashiCorp configurations
+  cloud:
+    vault:
+      uri: http://localhost:8200
+      authentication: TOKEN
+      token: my-root-token
+      kv:
+        enabled: true
+        # check md file
+        backend: secret 
+        default-context: my-company/development/spring-boot-dual-database  
+    config:
+      import: "vault://"
+
+
+
 # Logging
 logging:
   level:
@@ -124,3 +141,7 @@ springdoc:
   show-login-endpoint: true
   packages-to-scan: com.example.dualdb.controller
   paths-to-match: /api/**, /graphql/**
+
+
+
+

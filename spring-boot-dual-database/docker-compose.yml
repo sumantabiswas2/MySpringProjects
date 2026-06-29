@@ -182,6 +182,22 @@ services:
       - tempo
       - loki
 
+# Vault Hashi Corp server
+  vault:
+    image: hashicorp/vault:1.15.4 # [Certain] Always pin a specific version, never use 'latest'
+    container_name: hashicorp-vault
+    ports: 
+      - "8200:8200"
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: "my-root-token"
+      VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
+    volumes:
+      - vault_data:/vault/file
+      - vault_logs:/vault/logs
+    cap_add:
+      - IPC_LOCK # Prevents Vault memory from being swapped to disk (Security best practice)
+    restart: unless-stopped
+
 # ============================================
 # VOLUMES (Persistent Data)
 # ============================================
@@ -218,6 +234,12 @@ volumes:
     name: ${PROJECT_NAME:-spring-boot}_loki_data
   grafana_data:
     name: ${PROJECT_NAME:-spring-boot}_grafana_data
+
+  # Vault configurations
+  vault_data:
+    name: ${PROJECT_NAME:-spring-boot}_vault_data
+  vault_logs:
+    name: ${PROJECT_NAME:-spring-boot}_vault_logs
 
 # ============================================
 # NETWORKS
