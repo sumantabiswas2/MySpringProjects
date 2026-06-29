@@ -241,4 +241,6 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     @Query("DELETE FROM Customer c " +
            "WHERE c.customerId NOT IN (SELECT DISTINCT o.customer.customerId FROM Order o)")
     int deleteCustomersWithoutOrders();
+    
+    
 }

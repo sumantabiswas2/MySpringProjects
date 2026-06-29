@@ -1,10 +1,12 @@
 package com.example.dualdb.service;
 
+import com.example.dualdb.event.CustomerEvent;
 import com.example.dualdb.model.mysql.Customer;
 import com.example.dualdb.model.mysql.Order;
 import com.example.dualdb.model.mysql.OrderItem;
 import com.example.dualdb.model.mysql.Product;
 import com.example.dualdb.model.neo4j.*;
+import com.example.dualdb.repository.jdbc.CustomerJdbcRepository;
 import com.example.dualdb.repository.mysql.CustomerRepository;
 import com.example.dualdb.repository.mysql.OrderRepository;
 import com.example.dualdb.repository.mysql.ProductRepository;
@@ -16,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,7 +36,8 @@ public class CustomerSyncService {
     private final Neo4jCustomerRepository neo4jCustomerRepository;
     private final Neo4jOrderRepository neo4jOrderRepository;
     private final Neo4jProductRepository neo4jProductRepository;
-
+    private final ApplicationEventPublisher eventPublisher;
+    private final CustomerJdbcRepository customerJdbcRepository;
     
     
     /**
@@ -165,6 +169,8 @@ public class CustomerSyncService {
         // 3. Save to Neo4j
         neo4jCustomer.setOrders(neo4jOrders);
         neo4jCustomerRepository.save(neo4jCustomer);
+        
+        
 
         log.info("Successfully synced customer {} with {} orders to Neo4j", 
                 customerId, neo4jOrders.size());
@@ -183,10 +189,17 @@ public class CustomerSyncService {
         for (Customer customer : customers) {
             try {
                 syncCustomerToNeo4j(customer.getCustomerId());
+                CustomerEvent customerEvent = new CustomerEvent(this,
+							                        customer.getCustomerId(), 
+							                        CustomerEvent.EventType.SYNCED_TO_NEO4J, 
+							                        customer);
+                eventPublisher.publishEvent(customerEvent);
             } catch (Exception e) {
                 log.error("Failed to sync customer {}: {}", customer.getCustomerId(), e.getMessage());
             }
         }
+        
+        
         
         log.info("Completed syncing {} customers to Neo4j", customers.size());
     }
