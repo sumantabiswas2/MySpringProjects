@@ -88,6 +88,13 @@ spring:
 
 
 
+# Custom tracing baggage (unique request id per HTTP call)
+app:
+  tracing:
+    baggage:
+      header: ${APP_TRACING_BAGGAGE_HEADER:X-Request-Id}
+      field: ${APP_TRACING_BAGGAGE_FIELD:request.id}
+
 # Logging
 logging:
   level:
@@ -96,6 +103,8 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     org.springframework.cache: DEBUG
+  pattern:
+    correlation: "[${spring.application.name:},%X{traceId:-},%X{spanId:-},%X{request.id:-}] "
 
 # Observability and metrics
 management:
@@ -103,20 +112,33 @@ management:
     web:
       exposure:
         include: "*" # In production, restrict to 'health, info, prometheus'
+  tracing:
+    sampling:
+      probability: 1.0
+    propagation:
+      type: w3c
+    baggage:
+      remote-fields:
+        - ${app.tracing.baggage.field:request.id}
+      correlation:
+        fields:
+          - ${app.tracing.baggage.field:request.id}
   otlp:
     metrics:
       export:
-        enabled: false  # Disable OTLP metrics export
-        url: http://localhost:4318/v1/metrics
+        enabled: false
+        url: ${OTEL_EXPORTER_OTLP_METRICS_ENDPOINT:http://localhost:4318/v1/metrics}
   opentelemetry:
     tracing:
       export:
         otlp:
-          endpoint: http://localhost:4318/v1/traces
+          enabled: ${OTEL_TRACES_EXPORT_ENABLED:true}
+          endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
     logging:
       export:
         otlp:
-          endpoint: http://localhost:4318/v1/logs
+          enabled: ${OTEL_LOGS_EXPORT_ENABLED:true}
+          endpoint: ${OTEL_EXPORTER_OTLP_LOGS_ENDPOINT:http://localhost:4318/v1/logs}
   metrics:
     tags:
       application: ${spring.application.name} # Tag all metrics with your app's name

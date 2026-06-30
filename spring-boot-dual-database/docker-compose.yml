@@ -2,6 +2,17 @@
 
 
 
+# Shared tracing env for Spring Boot (use when running the app in Docker)
+x-spring-boot-tracing-env: &spring-boot-tracing-env
+  OTEL_PROPAGATORS: tracecontext,baggage
+  OTEL_TRACES_EXPORT_ENABLED: "true"
+  OTEL_LOGS_EXPORT_ENABLED: "true"
+  OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://otel-collector:4318/v1/traces
+  OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: http://otel-collector:4318/v1/logs
+  OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: http://otel-collector:4318/v1/metrics
+  APP_TRACING_BAGGAGE_HEADER: X-Request-Id
+  APP_TRACING_BAGGAGE_FIELD: request.id
+
 services:
   # ============================================
   # DATABASES
@@ -99,6 +110,8 @@ services:
     container_name: otel-collector
     restart: always
     command: ["--config=/etc/otel-collector-config.yml"]
+    environment:
+      OTEL_PROPAGATORS: tracecontext,baggage
     volumes:
       - ./docker/otel-collector-config.yml:/etc/otel-collector-config.yml
     ports:
@@ -168,10 +181,10 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
-      - GF_INSTALL_PLUGINS=grafana-piechart-panel
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./docker/grafana-dashboards:/etc/grafana/provisioning/dashboards
+      - ./docker/grafana-dashboards/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
+      - ./docker/grafana-dashboards/json:/etc/grafana/provisioning/dashboards/json
       - ./docker/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
     ports:
       - "3000:3000"

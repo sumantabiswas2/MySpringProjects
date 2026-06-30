@@ -21,8 +21,10 @@ exporters:
     endpoint: tempo:4317
     tls:
       insecure: true
-  debug:
-    verbosity: basic
+  otlphttp/loki:
+    endpoint: http://loki:3100/otlp
+    tls:
+      insecure: true
 
 service:
   pipelines:
@@ -37,4 +39,4 @@ service:
     logs:
       receivers: [otlp]
       processors: [batch]
-      exporters: [debug]
+      exporters: [otlphttp/loki]
